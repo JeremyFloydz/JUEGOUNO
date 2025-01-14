@@ -13,7 +13,7 @@
         android:layout_gravity="center"
         android:layout_marginBottom="16dp"
         android:gravity="center"
-        android:text="Selecciona los pares correctos"
+        android:text="Selecciona los pares correctosss"
         android:textSize="32sp"
         android:textStyle="bold" />
 
