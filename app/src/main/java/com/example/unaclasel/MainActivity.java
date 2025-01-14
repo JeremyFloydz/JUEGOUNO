@@ -1,11 +1,11 @@
 package com.example.unaclasel;
 
+import android.animation.ObjectAnimator;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Declaración de las imágenes de los dos conjuntos
     private ImageView imgCat, imgDog, imgElephant, imgBlueberry, imgApple, imgGrape, imgStrawberry;
+    private TextView messageText; // TextView para los mensajes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,10 +30,10 @@ public class MainActivity extends AppCompatActivity {
         imgDog = findViewById(R.id.img_dog);
         imgElephant = findViewById(R.id.img_elephant);
 
-        // Inicialización del primer conjunto de palabras
-        Button btnCat = findViewById(R.id.btn_cat);
-        Button btnDog = findViewById(R.id.btn_dog);
-        Button btnElephant = findViewById(R.id.btn_elephant);
+        // Inicialización del primer conjunto de palabras (TextView en lugar de Button)
+        TextView btnCat = findViewById(R.id.btn_cat);
+        TextView btnDog = findViewById(R.id.btn_dog);
+        TextView btnElephant = findViewById(R.id.btn_elephant);
 
         // Inicialización del segundo conjunto de imágenes
         imgBlueberry = findViewById(R.id.img_blueberry);
@@ -40,14 +41,18 @@ public class MainActivity extends AppCompatActivity {
         imgGrape = findViewById(R.id.img_grape);
         imgStrawberry = findViewById(R.id.img_strawberry);
 
-        // Inicialización del segundo conjunto de palabras
-        Button btnBlueberry = findViewById(R.id.btn_blueberry);
-        Button btnApple = findViewById(R.id.btn_apple);
-        Button btnGrape = findViewById(R.id.btn_grape);
-        Button btnStrawberry = findViewById(R.id.btn_strawberry);
+        // Inicialización del segundo conjunto de palabras (TextView en lugar de Button)
+        TextView btnBlueberry = findViewById(R.id.btn_blueberry);
+        TextView btnApple = findViewById(R.id.btn_apple);
+        TextView btnGrape = findViewById(R.id.btn_grape);
+        TextView btnStrawberry = findViewById(R.id.btn_strawberry);
 
         // Botón de comprobación
-        Button btnCheck = findViewById(R.id.btn_check);
+        TextView btnCheck = findViewById(R.id.btn_check);
+
+        // Inicialización del TextView para los mensajes
+        messageText = findViewById(R.id.message_text);
+        messageText.setVisibility(View.INVISIBLE); // Ocultar el mensaje inicialmente
 
         // Ocultar el segundo conjunto inicialmente
         toggleSecondSet(false, imgBlueberry, imgApple, imgGrape, imgStrawberry, btnBlueberry, btnApple, btnGrape, btnStrawberry);
@@ -129,13 +134,32 @@ public class MainActivity extends AppCompatActivity {
         // Comprobación
         btnCheck.setOnClickListener(view -> {
             if (selectedImage == null || selectedWord == null) {
-                Toast.makeText(MainActivity.this, "Selecciona una imagen y una palabra", Toast.LENGTH_SHORT).show();
+                showMessage("Selecciona una imagen y una palabra", Color.RED);
             } else if (selectedImage.equals(selectedWord)) {
-                Toast.makeText(MainActivity.this, "¡Correcto! " + selectedImage + " coincide con " + selectedWord, Toast.LENGTH_SHORT).show();
+                String[] messages = {"¡Muy bien!", "¡Enhorabuena!", "¡Excelente!"};
+                int randomMessageIndex = (int) (Math.random() * messages.length);
+                showMessage(messages[randomMessageIndex], Color.RED);
 
                 // Cambiar color a rojo claro para las imágenes y botones emparejados
                 changeMatchedColor(selectedImage, imgCat, imgDog, imgElephant, btnCat, btnDog, btnElephant,
                         imgBlueberry, imgApple, imgGrape, imgStrawberry, btnBlueberry, btnApple, btnGrape, btnStrawberry);
+
+                // Eliminar el borde de las imágenes y botones emparejados
+                if (selectedImage.equals("Gato")) {
+                    removeBorder(imgCat, btnCat);
+                } else if (selectedImage.equals("Perro")) {
+                    removeBorder(imgDog, btnDog);
+                } else if (selectedImage.equals("Elefante")) {
+                    removeBorder(imgElephant, btnElephant);
+                } else if (selectedImage.equals("Blueberry")) {
+                    removeBorder(imgBlueberry, btnBlueberry);
+                } else if (selectedImage.equals("Apple")) {
+                    removeBorder(imgApple, btnApple);
+                } else if (selectedImage.equals("Grape")) {
+                    removeBorder(imgGrape, btnGrape);
+                } else if (selectedImage.equals("Strawberry")) {
+                    removeBorder(imgStrawberry, btnStrawberry);
+                }
 
                 // Actualizar los contadores de emparejamientos
                 if (isFirstSet(selectedImage)) {
@@ -152,23 +176,50 @@ public class MainActivity extends AppCompatActivity {
 
                 // Verificar si todos los emparejamientos se han hecho correctamente
                 if (correctMatchesFirstSet == 3 && correctMatchesSecondSet == 4) {
-                    Toast.makeText(MainActivity.this, "¡Felicidades! Has emparejado todas las imágenes correctamente.", Toast.LENGTH_LONG).show();
-                    // Aquí puedes agregar lógica para finalizar el juego o mostrar un mensaje de victoria
+                    showMessage("¡Has ganado!", Color.RED);
                 }
 
                 // Reiniciar selección
                 selectedImage = null;
                 selectedWord = null;
             } else {
-                Toast.makeText(MainActivity.this, "¡Incorrecto! " + selectedImage + " no coincide con " + selectedWord, Toast.LENGTH_SHORT).show();
+                showMessage("Incorrecto, vuelve a intentarlo", Color.RED);
             }
         });
     }
 
+    private void showMessage(String message, int color) {
+        messageText.setText(message);
+        messageText.setTextColor(color);
+        messageText.setVisibility(View.VISIBLE);
+
+        // Animación para hacer que el mensaje aparezca de manera animada
+        ObjectAnimator animator = ObjectAnimator.ofFloat(messageText, "alpha", 0f, 1f);
+        animator.setDuration(500); // Duración de la animación
+        animator.start();
+    }
+
     private void highlightSelection(View selected, View... others) {
-        selected.setAlpha(1.0f);
+        // Si es un TextView, aplicar el borde
+        if (selected instanceof TextView) {
+            selected.setBackgroundResource(R.drawable.border); // Añadir el borde al TextView
+        } else if (selected instanceof ImageView) {
+            selected.setBackgroundResource(R.drawable.border); // Añadir el borde a la imagen
+        }
+
+        // Eliminar el borde de los otros TextViews
         for (View other : others) {
-            other.setAlpha(0.5f);
+            if (other instanceof TextView) {
+                other.setBackgroundResource(0); // Eliminar el borde del TextView
+            } else if (other instanceof ImageView) {
+                other.setBackgroundResource(0); // Eliminar el borde de la imagen
+            }
+        }
+    }
+
+    private void removeBorder(View... views) {
+        for (View view : views) {
+            view.setBackgroundResource(0); // Elimina el borde
         }
     }
 
@@ -177,72 +228,57 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeMatchedColor(String match, ImageView imgCat, ImageView imgDog, ImageView imgElephant,
-                                    Button btnCat, Button btnDog, Button btnElephant,
+                                    TextView btnCat, TextView btnDog, TextView btnElephant,
                                     ImageView imgBlueberry, ImageView imgApple, ImageView imgGrape, ImageView imgStrawberry,
-                                    Button btnBlueberry, Button btnApple, Button btnGrape, Button btnStrawberry) {
-        int color = Color.parseColor("#FFCCCB"); // Rojo claro
+                                    TextView btnBlueberry, TextView btnApple, TextView btnGrape, TextView btnStrawberry) {
         switch (match) {
             case "Gato":
-                imgCat.setBackgroundColor(color);
-                btnCat.setBackgroundColor(color);
                 imgCat.setEnabled(false);  // Deshabilitar la imagen
-                btnCat.setEnabled(false);  // Deshabilitar el botón
-                imgCat.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnCat.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnCat.setEnabled(false);  // Deshabilitar el TextView
+                imgCat.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnCat.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
             case "Perro":
-                imgDog.setBackgroundColor(color);
-                btnDog.setBackgroundColor(color);
                 imgDog.setEnabled(false);  // Deshabilitar la imagen
-                btnDog.setEnabled(false);  // Deshabilitar el botón
-                imgDog.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnDog.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnDog.setEnabled(false);  // Deshabilitar el TextView
+                imgDog.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnDog.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
             case "Elefante":
-                imgElephant.setBackgroundColor(color);
-                btnElephant.setBackgroundColor(color);
                 imgElephant.setEnabled(false);  // Deshabilitar la imagen
-                btnElephant.setEnabled(false);  // Deshabilitar el botón
-                imgElephant.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnElephant.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnElephant.setEnabled(false);  // Deshabilitar el TextView
+                imgElephant.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnElephant.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
             case "Blueberry":
-                imgBlueberry.setBackgroundColor(color);
-                btnBlueberry.setBackgroundColor(color);
                 imgBlueberry.setEnabled(false);  // Deshabilitar la imagen
-                btnBlueberry.setEnabled(false);  // Deshabilitar el botón
-                imgBlueberry.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnBlueberry.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnBlueberry.setEnabled(false);  // Deshabilitar el TextView
+                imgBlueberry.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnBlueberry.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
             case "Apple":
-                imgApple.setBackgroundColor(color);
-                btnApple.setBackgroundColor(color);
                 imgApple.setEnabled(false);  // Deshabilitar la imagen
-                btnApple.setEnabled(false);  // Deshabilitar el botón
-                imgApple.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnApple.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnApple.setEnabled(false);  // Deshabilitar el TextView
+                imgApple.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnApple.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
             case "Grape":
-                imgGrape.setBackgroundColor(color);
-                btnGrape.setBackgroundColor(color);
                 imgGrape.setEnabled(false);  // Deshabilitar la imagen
-                btnGrape.setEnabled(false);  // Deshabilitar el botón
-                imgGrape.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnGrape.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnGrape.setEnabled(false);  // Deshabilitar el TextView
+                imgGrape.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnGrape.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
             case "Strawberry":
-                imgStrawberry.setBackgroundColor(color);
-                btnStrawberry.setBackgroundColor(color);
                 imgStrawberry.setEnabled(false);  // Deshabilitar la imagen
-                btnStrawberry.setEnabled(false);  // Deshabilitar el botón
-                imgStrawberry.setAlpha(0.5f); // Mantener la opacidad baja para mostrar que está deshabilitado
-                btnStrawberry.setAlpha(0.5f);  // Mantener la opacidad baja para mostrar que está deshabilitado
+                btnStrawberry.setEnabled(false);  // Deshabilitar el TextView
+                imgStrawberry.setAlpha(0.5f);  // Mantener la imagen en gris (opacidad reducida)
+                btnStrawberry.setAlpha(0.5f);  // Mantener el TextView en gris (opacidad reducida)
                 break;
         }
     }
 
     private void toggleFirstSet(boolean show, ImageView imgCat, ImageView imgDog, ImageView imgElephant,
-                                Button btnCat, Button btnDog, Button btnElephant) {
+                                TextView btnCat, TextView btnDog, TextView btnElephant) {
         int visibility = show ? View.VISIBLE : View.GONE;
         imgCat.setVisibility(visibility);
         imgDog.setVisibility(visibility);
@@ -253,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleSecondSet(boolean show, ImageView imgBlueberry, ImageView imgApple, ImageView imgGrape, ImageView imgStrawberry,
-                                 Button btnBlueberry, Button btnApple, Button btnGrape, Button btnStrawberry) {
+                                 TextView btnBlueberry, TextView btnApple, TextView btnGrape, TextView btnStrawberry) {
         int visibility = show ? View.VISIBLE : View.GONE;
         imgBlueberry.setVisibility(visibility);
         imgApple.setVisibility(visibility);
